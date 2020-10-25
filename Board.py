@@ -1,8 +1,49 @@
+import pygame
+pygame.init()
+lil_font = pygame.font.SysFont("arial", 20, bold=True, italic=False)
+big_font = pygame.font.SysFont("arialblack", 40, False, False)
+
+game_display = pygame.display.set_mode((840, 840))
+player_color = "black"
+
+
+def display_board():
+    for row in range(8):
+        for col in range(8):
+            x = 100 * col + 20
+            y = 100 * row + 20
+            if player_color == "white":
+                if (row + col) % 2 == 0:
+                    pygame.draw.rect(game_display, (255, 255, 255), (x, y, 100, 100))
+                else:
+                    pygame.draw.rect(game_display, (100, 100, 100), (x, y, 100, 100))
+                for i in range(8):
+                    display_text("ABCDEFGH"[i], lil_font, i * 100 + 65, 818, (0, 0, 0))
+                    display_text("87654321"[i], lil_font, 7, i * 100 + 60, (0, 0, 0))
+            else:
+                if (row + col) % 2 != 0:
+                    pygame.draw.rect(game_display, (100, 100, 100), (x, y, 100, 100))
+                else:
+                    pygame.draw.rect(game_display, (255, 255, 255), (x, y, 100, 100))
+                for i in range(8):
+                    display_text("HGFEDCBA"[i], lil_font, i * 100 + 65, 818, (0, 0, 0))
+                    display_text("12345678"[i], lil_font, 7, i * 100 + 60, (0, 0, 0))
+
+
+def display_text(text, font, x, y, color):
+    displayed_text = font.render(text, True, color)
+    game_display.blit(displayed_text, (x, y))
+
+
 class Piece:
     def __init__(self, col, row, color):
         self.col = col
         self.row = row
         self.color = color
+
+    def display_sprite(self, window, x, y):
+        sprite = pygame.image.load(self.sprite)
+        window.blit(sprite, (x, y))
 
 
 class Pawn(Piece):
@@ -142,6 +183,16 @@ class Board:
         self.board[5][6] = Pawn(5, 6, "white")
         self.board[6][6] = Pawn(6, 6, "white")
         self.board[7][6] = Pawn(7, 6, "white")
+
+    def display_pieces(self):
+        for row in range(8):
+            for col in range(8):
+                if self.board[col][row] != 0:
+                    p = self.board[col][row]
+                    if player_color == "white":
+                        p.display_sprite(game_display, col * 100 + 20, row * 100 + 20)
+                    else:
+                        p.display_sprite(game_display, (7 - col) * 100 + 20, (7 - row) * 100 + 20)
 
 
 board = Board()
