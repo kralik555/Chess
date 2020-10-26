@@ -1,10 +1,10 @@
 import pygame
 pygame.init()
 lil_font = pygame.font.SysFont("arial", 20, bold=True, italic=False)
-big_font = pygame.font.SysFont("arialblack", 40, False, False)
+big_font = pygame.font.SysFont("arialblack", 40, bold=False, italic=False)
 
 game_display = pygame.display.set_mode((840, 840))
-player_color = "black"
+player_color = "white"
 
 
 def display_board():
@@ -40,10 +40,42 @@ class Piece:
         self.col = col
         self.row = row
         self.color = color
+        self.unmoved = True
+        self.sprite = None
+        self.piece_type = None
 
     def display_sprite(self, window, x, y):
         sprite = pygame.image.load(self.sprite)
         window.blit(sprite, (x, y))
+
+    def move(self, col, row):
+        board.en_passant = False
+        board.castling = None
+        if self.piece_type == "pawn":
+            if board.board[col][row] == 0 and col == self.col - 1:
+                board.board[col][self.row] = 0
+                board.en_passant = True
+            elif board.board[col][row] == 0 and col == self.col + 1:
+                board.board[col][self.row] = 0
+                board.en_passant = True
+        elif self.piece_type == "king":
+            if col == self.col + 2:
+                board.board[self.col + 1][row] = board.board[self.col + 3][row]
+                board.board[self.col + 3][row].col, board.board[self.col + 3][row].row = self.col + 1, row
+                board.board[self.col + 3][row] = 0
+                board.castling = "kingside"
+            elif col == self.col - 2:
+                board.board[self.col - 1][row] = board.board[self.col - 4][row]
+                board.board[self.col - 4][row].col, board.board[self.col - 4][row].row = self.col - 1, row
+                board.board[self.col - 4][row] = 0
+                board.castling = "queenside"
+        col1, row1 = self.col, self.row
+        self.col, self.row = col, row
+        board.board[col][row] = self
+        board.board[col1][row1] = 0
+        board.selected_piece = ()
+        board.selected_any = False
+        board.last_move = (col1, row1, self.col, self.row)
 
 
 class Pawn(Piece):
@@ -54,6 +86,67 @@ class Pawn(Piece):
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
 
+    def valid_moves(self):
+        row = self.row
+        col = self.col
+        moves = []
+
+        if self.color == "black":
+            if row < 7:
+                p = board.board[col][row + 1]
+                if p == 0:
+                    moves.append((col, row + 1))
+            if self.unmoved and self.row == 1:
+                p1 = board.board[col][row + 1]
+                p2 = board.board[col][row + 2]
+                if p1 == 0 and p2 == 0:
+                    moves.append((col, row + 2))
+            if col < 7 and row < 7:
+                p = board.board[col + 1][row + 1]
+                if p != 0:
+                    if p.color != self.color:
+                        moves.append((col + 1, row + 1))
+            if col > 0 and row < 7:
+                p = board.board[col - 1][row + 1]
+                if p != 0:
+                    if p.color != self.color:
+                        moves.append((col - 1, row + 1))
+            try:
+                if board.last_move == (col-1, row+2, col-1, row) and board.board[col - 1][row].piece_type == "pawn":
+                    moves.append((col - 1, row + 1))
+                if board.last_move == (col+1, row+2, col+1, row) and board.board[col + 1][row].piece_type == "pawn":
+                    moves.append((col + 1, row + 1))
+            except:
+                pass
+        elif self.color == "white":
+            if row > 0:
+                p = board.board[col][row-1]
+                if p == 0:
+                    moves.append((col, row-1))
+            if self.unmoved and self.row == 6:
+                p1 = board.board[col][row - 1]
+                p2 = board.board[col][row - 2]
+                if p1 == 0 and p2 == 0:
+                    moves.append((col, row-2))
+            if col < 7:
+                p = board.board[col+1][row-1]
+                if p != 0:
+                    if p.color != self.color:
+                        moves.append((col+1, row-1))
+            if col > 0:
+                p = board.board[col-1][row-1]
+                if p != 0:
+                    if p.color != self.color:
+                        moves.append((col-1, row-1))
+            try:
+                if board.last_move == (col-1, row-2, col-1, row) and board.board[col-1][row].piece_type == "pawn":
+                    moves.append((col-1, row-1))
+                if board.last_move == (col+1, row-2, col+1, row) and board.board[col+1][row].piece_type == "pawn":
+                    moves.append((col+1, row-1))
+            except:
+                pass
+        return moves
+
 
 class Bishop(Piece):
     def __init__(self, col, row, color):
@@ -62,6 +155,77 @@ class Bishop(Piece):
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+
+    def valid_moves(self):
+        col = self.col
+        row = self.row
+        moves = []
+
+        # up right
+        right = col + 1
+        left = col - 1
+        for i in range(row - 1, -1, -1):
+            if right < 8:
+                p = board.board[right][i]
+                if p == 0:
+                    moves.append((right, i))
+                elif p.color != self.color:
+                    moves.append((right, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            right += 1
+        # up left
+        for i in range(row - 1, -1, -1):
+            if left > -1:
+                p = board.board[left][i]
+                if p == 0:
+                    moves.append((left, i))
+                elif p.color != self.color:
+                    moves.append((left, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            left -= 1
+
+        right = col + 1
+        left = col - 1
+
+        # down right
+        for i in range(row + 1, 8):
+            if right < 8:
+                p = board.board[right][i]
+                if p == 0:
+                    moves.append((right, i))
+                elif p.color != self.color:
+                    moves.append((right, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            right += 1
+        # down left
+
+        for i in range(row + 1, 8):
+            if left > -1:
+                p = board.board[left][i]
+                if p == 0:
+                    moves.append((left, i))
+                elif p.color != self.color:
+                    moves.append((left, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            left -= 1
+
+        return moves
 
 
 class Rook(Piece):
@@ -72,6 +236,57 @@ class Rook(Piece):
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
 
+    def valid_moves(self):
+        row = self.row
+        col = self.col
+        moves = []
+
+        # up
+        for i in range(row - 1, -1, -1):
+            p = board.board[col][i]
+            if p == 0:
+                moves.append((col, i))
+            elif p.color != self.color:
+                moves.append((col, i))
+                break
+            else:
+                break
+
+        # down
+        for i in range(row + 1, 8):
+            p = board.board[col][i]
+            if p == 0:
+                moves.append((col, i))
+            elif p.color != self.color:
+                moves.append((col, i))
+                break
+            else:
+                break
+
+        # left
+        for i in range(col - 1, -1, -1):
+            p = board.board[i][row]
+            if p == 0:
+                moves.append((i, row))
+            elif p.color != self.color:
+                moves.append((i, row))
+                break
+            else:
+                break
+
+        # right
+        for i in range(col + 1, 8):
+            p = board.board[i][row]
+            if p == 0:
+                moves.append((i, row))
+            elif p.color != self.color:
+                moves.append((i, row))
+                break
+            else:
+                break
+
+        return moves
+
 
 class Knight(Piece):
     def __init__(self, col, row, color):
@@ -80,6 +295,46 @@ class Knight(Piece):
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+
+    def valid_moves(self):
+        col = self.col
+        row = self.row
+        moves = []
+
+        if col < 7 and row < 6:
+            p = board.board[col + 1][row + 2]
+            if p == 0 or p.color != self.color:
+                moves.append((col + 1, row + 2))
+        if col < 7 and row > 1:
+            p = board.board[col + 1][row - 2]
+            if p == 0 or p.color != self.color:
+                moves.append((col + 1, row - 2))
+        if col > 0 and row < 6:
+            p = board.board[col - 1][row + 2]
+            if p == 0 or p.color != self.color:
+                moves.append((col - 1, row + 2))
+        if col > 0 and row > 1:
+            p = board.board[col - 1][row - 2]
+            if p == 0 or p.color != self.color:
+                moves.append((col - 1, row - 2))
+        if col < 6 and row < 7:
+            p = board.board[col + 2][row + 1]
+            if p == 0 or p.color != self.color:
+                moves.append((col + 2, row + 1))
+        if col < 6 and row > 0:
+            p = board.board[col + 2][row - 1]
+            if p == 0 or p.color != self.color:
+                moves.append((col + 2, row - 1))
+        if col > 1 and row < 7:
+            p = board.board[col - 2][row + 1]
+            if p == 0 or p.color != self.color:
+                moves.append((col - 2, row + 1))
+        if col > 1 and row > 0:
+            p = board.board[col - 2][row - 1]
+            if p == 0 or p.color != self.color:
+                moves.append((col - 2, row - 1))
+
+        return moves
 
 
 class Queen(Piece):
@@ -90,6 +345,120 @@ class Queen(Piece):
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
 
+    def valid_moves(self):
+        col = self.col
+        row = self.row
+        moves = []
+
+        # up right
+        right = col + 1
+        left = col - 1
+        for i in range(row - 1, -1, -1):
+            if right < 8:
+                p = board.board[right][i]
+                if p == 0:
+                    moves.append((right, i))
+                elif p.color != self.color:
+                    moves.append((right, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            right += 1
+        # up left
+        for i in range(row - 1, -1, -1):
+            if left > -1:
+                p = board.board[left][i]
+                if p == 0:
+                    moves.append((left, i))
+                elif p.color != self.color:
+                    moves.append((left, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            left -= 1
+
+        right = col + 1
+        left = col - 1
+
+        # down right
+        for i in range(row + 1, 8):
+            if right < 8:
+                p = board.board[right][i]
+                if p == 0:
+                    moves.append((right, i))
+                elif p.color != self.color:
+                    moves.append((right, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            right += 1
+        # down left
+        for i in range(row + 1, 8):
+            if left > -1:
+                p = board.board[left][i]
+                if p == 0:
+                    moves.append((left, i))
+                elif p.color != self.color:
+                    moves.append((left, i))
+                    break
+                else:
+                    break
+            else:
+                break
+            left -= 1
+
+        # up
+        for i in range(row - 1, -1, -1):
+            p = board.board[col][i]
+            if p == 0:
+                moves.append((col, i))
+            elif p.color != self.color:
+                moves.append((col, i))
+                break
+            else:
+                break
+
+        # down
+        for i in range(row + 1, 8):
+            p = board.board[col][i]
+            if p == 0:
+                moves.append((col, i))
+            elif p.color != self.color:
+                moves.append((col, i))
+                break
+            else:
+                break
+
+        # left
+        for i in range(col - 1, -1, -1):
+            p = board.board[i][row]
+            if p == 0:
+                moves.append((i, row))
+            elif p.color != self.color:
+                moves.append((i, row))
+                break
+            else:
+                break
+
+        # right
+        for i in range(col + 1, 8):
+            p = board.board[i][row]
+            if p == 0:
+                moves.append((i, row))
+            elif p.color != self.color:
+                moves.append((i, row))
+                break
+            else:
+                break
+
+        return moves
+
 
 class King(Piece):
     def __init__(self, col, row, color):
@@ -98,6 +467,76 @@ class King(Piece):
         self.value = 9001
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+
+    def valid_moves(self):
+        row = self.row
+        col = self.col
+        moves = []
+        if row > 0:
+            # up left
+            if col > 0:
+                p = board.board[col-1][row-1]
+                if p == 0:
+                    moves.append((col-1, row-1))
+                elif p.color != self.color:
+                    moves.append((col-1, row-1))
+            # up
+            p = board.board[col][row-1]
+            if p == 0 or p.color != self.color:
+                moves.append((col, row-1))
+            # up right
+            if col < 7:
+                p = board.board[col+1][row-1]
+                if p == 0 or p.color != self.color:
+                    moves.append((col+1, row-1))
+        if row < 7:
+            # down left
+            if col > 0:
+                p = board.board[col-1][row+1]
+                if p == 0:
+                    moves.append((col-1, row+1))
+                elif p.color != self.color:
+                    moves.append((col-1, row+1))
+            # down
+            p = board.board[col][row+1]
+            if p == 0 or p.color != self.color:
+                moves.append((col, row+1))
+            # down right
+            if col < 7:
+                p = board.board[col+1][row+1]
+                if p == 0 or p.color != self.color:
+                    moves.append((col+1, row+1))
+        if col > 0:
+            # left
+            p = board.board[col-1][row]
+            if p == 0 or p.color != self.color:
+                moves.append((col-1, row))
+        if col < 7:
+            # right
+            p = board.board[col+1][row]
+            if p == 0 or p.color != self.color:
+                moves.append((col+1, row))
+        # castling king side
+        if self.unmoved: # and self.is not atatcked
+            try:
+                # king side castling
+                p1 = board.board[col+1][row]
+                p2 = board.board[col+2][row]
+                p3 = board.board[col+3][row]
+                if p1 == 0 and p2 == 0 and p3.unmoved:
+                    moves.append((col+2, row))
+                # castling queen side
+                p1 = board.board[col - 1][row]
+                p2 = board.board[col - 2][row]
+                p3 = board.board[col - 3][row]
+                p4 = board.board[col - 4][row]
+                if p1 == 0 and p2 == 0 and p3 == 0 and p4.unmoved:
+                    moves.append((col - 2, row))
+            except:
+                pass
+
+
+        return moves
 
 
 class Board:
@@ -144,6 +583,8 @@ class Board:
         self.selected_piece = ()
         self.turn = "white"
         self.last_move =(-1, -1, -1, -1)
+        self.en_passant = False
+        self.castling = None
 
     def renew_board(self):
         self.board = [[0 for x in range(8)] for _ in range(8)]
