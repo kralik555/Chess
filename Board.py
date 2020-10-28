@@ -5,6 +5,8 @@ big_font = pygame.font.SysFont("arialblack", 40, bold=False, italic=False)
 
 game_display = pygame.display.set_mode((840, 840))
 player_color = "white"
+computer_color = "black"
+message = "Fuck you"
 
 
 def display_board():
@@ -51,11 +53,10 @@ class Piece:
     def move(self, col, row):
         board.en_passant = False
         board.castling = None
+        board.changed_to_queen = False
+        board.stolen_piece = board.board[col][row]
         if self.piece_type == "pawn":
-            if board.board[col][row] == 0 and col == self.col - 1:
-                board.board[col][self.row] = 0
-                board.en_passant = True
-            elif board.board[col][row] == 0 and col == self.col + 1:
+            if board.board[col][row] == 0 and (col == self.col - 1 or col == self.col + 1):
                 board.board[col][self.row] = 0
                 board.en_passant = True
         elif self.piece_type == "king":
@@ -73,9 +74,38 @@ class Piece:
         self.col, self.row = col, row
         board.board[col][row] = self
         board.board[col1][row1] = 0
+        if self.piece_type == "pawn":
+            if self.row == 7 or self.row == 0:
+                board.board[self.col][self.row] = Queen(self.col, self.row, self.color)
+                board.changed_to_queen = True
         board.selected_piece = ()
         board.selected_any = False
+
         board.last_move = (col1, row1, self.col, self.row)
+
+    def new_valid_moves(self):
+        moves = self.valid_moves()
+        removed_moves = []
+        for move in moves:
+            if self.color == "white":
+                danger_moves = board.get_all_moves("black")
+                for dgmove in danger_moves:
+                    try:
+                        if board.board[dgmove[0]][dgmove[1]].piece_type == "king":
+                            removed_moves.append(move)
+                    except:
+                        pass
+            else:
+                danger_moves = board.get_all_moves("white")
+                for dgmove in danger_moves:
+                    try:
+                        if board.board[dgmove[0]][dgmove[1]].piece_type == "king":
+                            removed_moves.append(move)
+                    except:
+                        pass
+        for remmove in removed_moves:
+            moves.remove(remmove)
+        return moves
 
 
 class Pawn(Piece):
@@ -585,6 +615,8 @@ class Board:
         self.last_move =(-1, -1, -1, -1)
         self.en_passant = False
         self.castling = None
+        self.changed_to_queen = False
+        self.stolen_piece = None
 
     def renew_board(self):
         self.board = [[0 for x in range(8)] for _ in range(8)]
@@ -625,6 +657,12 @@ class Board:
         self.board[6][6] = Pawn(6, 6, "white")
         self.board[7][6] = Pawn(7, 6, "white")
 
+        self.last_move = (-1, -1, -1, -1)
+        self.en_passant = False
+        self.changed_to_queen = False
+        self.castling = None
+        self.turn = "white"
+
     def display_pieces(self):
         for row in range(8):
             for col in range(8):
@@ -634,6 +672,80 @@ class Board:
                         p.display_sprite(game_display, col * 100 + 20, row * 100 + 20)
                     else:
                         p.display_sprite(game_display, (7 - col) * 100 + 20, (7 - row) * 100 + 20)
+
+    def get_all_pieces(self, color):
+        pieces = []
+        for i in range(8):
+            for j in range(8):
+                p = self.board[i][j]
+                if p != 0:
+                    if p.color == color:
+                        pieces.append((i, j))
+        return pieces
+
+    def get_all_moves(self, color):
+        all_moves = []
+        pieces = self.get_all_pieces(color)
+        for piece in pieces:
+            moves = self.board[piece[0]][piece[1]].valid_moves()
+            for move in moves:
+                all_moves.append(move)
+        return all_moves
+
+    def check(self, color): # checks if color gives check
+        moves = self.get_all_moves(color)
+        for move in moves:
+            try:
+                if self.board[move[0]][move[1]].piece_type == "king":
+                    return True
+            except:
+                pass
+        return False
+
+    def check_mate(self, color1, color2): # checks if color1 is mated by color2
+        pieces = self.get_all_pieces(color1)
+        moves = []
+        for piece in pieces:
+            for move in self.board[piece[0]][piece[1]].new_valid_moves():
+                moves.append(move)
+        if not moves and self.check(color2):
+            return True
+        return False
+
+    def stale_mate(self, color1, color2): # color1 has no moves but is not in check -> stale mate
+        pieces = self.get_all_pieces(color1)
+        moves = []
+        for piece in pieces:
+            for move in self.board[piece[0]][piece[1]].new_valid_moves():
+                moves.append(move)
+        if not moves and not self.check(color2):
+            return True
+        return False
+
+    def undo_move(self):
+        self.board[self.last_move[0]][self.last_move[1]] = self.board[self.last_move[2]][self.last_move[3]]
+        self.board[self.last_move[0]][self.last_move[1]].col = self.last_move[0]
+        self.board[self.last_move[0]][self.last_move[1]].row = self.last_move[1]
+        self.board[self.last_move[2]][self.last_move[3]] = self.stolen_piece
+        if self.en_passant:
+            self.board[self.last_move[2]][self.last_move[1]] = Pawn(self.last_move[2], self.last_move[1], self.turn)
+        elif self.castling == "kingside":
+            self.board[7][self.last_move[1]] = Rook(7, self.last_move[1], self.board[4][self.last_move[1]].color)
+            self.board[5][self.last_move[1]] = 0
+        elif self.castling == "queenside":
+            self.board[0][self.last_move[1]] = Rook(0, self.last_move[1], self.board[4][self.last_move[1]].color)
+            self.board[3][self.last_move[1]] = 0
+        elif self.changed_to_queen:
+            self.board[self.last_move[0]][self.last_move[1]] = Pawn(self.last_move[0], self.last_move[1], self.board[self.last_move[0]][self.last_move[1]].color)
+        if self.turn == "white":
+            self.turn = "black"
+        else:
+            self.turn = "white"
+        self.last_move = None
+        self.changed_to_queen = False
+        self.castling = None
+        self.en_passant = False
+
 
 
 board = Board()
