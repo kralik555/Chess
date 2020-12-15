@@ -1,4 +1,4 @@
-import Board, Menu
+import Board, Menu, Oponent
 import pygame, time
 pygame.init()
 
@@ -14,9 +14,13 @@ def play():
     while not quit_game:
         Board.display_board()
         Board.board.display_pieces()
+        try:
+            Board.board.selected_piece.display_moves()
+        except:
+            pass
         pygame.display.update()
         if go_to_menu:
-            Board.display_text(Board.message, Board.big_font, 300, 300, (0, 0, 0))
+            Board.display_text(Board.message, Board.big_font, 300, 300, (255, 0, 0))
             pygame.display.update()
             time.sleep(3)
             return True
@@ -36,45 +40,48 @@ def play():
                     except:
                         pass
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                x, y = pygame.mouse.get_pos()
-                if Board.player_color == "black":
-                    col, row = 7 - ((x - 20) // 100), 7 - ((y - 20) // 100)
-                else:
-                    col, row = (x - 20) // 100, (y - 20) // 100
-                try:
-                    if Board.board.selected_any:
-                        moves = Board.board.board[Board.board.selected_piece[0]][Board.board.selected_piece[1]].new_valid_moves()
-                        if (col, row) in moves:
-                            Board.board.board[Board.board.selected_piece[0]][Board.board.selected_piece[1]].move(col, row)
-                            if Board.board.turn == "white":
-                                Board.board.turn = "black"
-                                if Board.board.check_mate("black", "white"):
-                                    Board.message = "Black got a check mate"
-                                    go_to_menu = True
-                                elif Board.board.stale_mate("black", "white"):
-                                    Board.message = "Stalemate"
-                                    go_to_menu = True
-                            else:
-                                Board.board.turn = "white"
-                                if Board.board.check_mate("white", "black"):
-                                    Board.message = "White got a check mate"
-                                    go_to_menu = True
-                                elif Board.board.stale_mate("white", "black"):
-                                    go_to_menu = True
-                                    Board.message = "Stalemate"
-                        elif Board.board.board[col][row] != 0:
-                            if Board.board.board[col][row].color == Board.board.turn:
-                                Board.board.selected_any = True
-                                Board.board.selected_piece = (col, row)
-
+                if Board.board.turn == Board.player_color:
+                    x, y = pygame.mouse.get_pos()
+                    if Board.player_color == "black":
+                        col, row = 7 - ((x - 20) // 100), 7 - ((y - 20) // 100)
                     else:
-                        if Board.board.board[col][row] != 0:
-                            if Board.board.board[col][row].color == Board.board.turn:
-                                Board.board.selected_any = True
-                                Board.board.selected_piece = (col, row)
-                except:
-                    pass
+                        col, row = (x - 20) // 100, (y - 20) // 100
+                    try:
+                        if Board.board.selected_any:
+                            moves = Board.board.selected_piece.new_valid_moves()
+                            if (col, row) in moves:
+                                Board.board.selected_piece.move(col, row)
+                                if Board.board.turn == "white":
+                                    Board.board.turn = "black"
+                                    if Board.board.check_mate("black", "white"):
+                                        Board.message = "Black got a check mate"
+                                        go_to_menu = True
+                                    elif Board.board.stale_mate("black", "white"):
+                                        Board.message = "Stalemate"
+                                        go_to_menu = True
+                                else:
+                                    Board.board.turn = "white"
+                                    if Board.board.check_mate("white", "black"):
+                                        Board.message = "White got a check mate"
+                                        go_to_menu = True
+                                    elif Board.board.stale_mate("white", "black"):
+                                        go_to_menu = True
+                                        Board.message = "Stalemate"
+                            elif Board.board.board[col][row] != 0:
+                                if Board.board.board[col][row].color == Board.board.turn:
+                                    Board.board.selected_any = True
+                                    Board.board.selected_piece = Board.board.board[col][row]
 
+                        else:
+                            if Board.board.board[col][row] != 0:
+                                if Board.board.board[col][row].color == Board.board.turn:
+                                    Board.board.selected_any = True
+                                    Board.board.selected_piece = Board.board.board[col][row]
+                                    Board.board.selected_piece.display_moves()
+                    except:
+                        pass
+        if Board.board.turn == Board.computer_color:
+            Oponent.computer.play()
         pygame.display.update()
         clock.tick(60)
 

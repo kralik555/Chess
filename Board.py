@@ -2,6 +2,7 @@ import pygame
 pygame.init()
 lil_font = pygame.font.SysFont("arial", 20, bold=True, italic=False)
 big_font = pygame.font.SysFont("arialblack", 40, bold=False, italic=False)
+help_font = pygame.font.SysFont("arialblack", 30, bold=False, italic=False)
 
 game_display = pygame.display.set_mode((840, 840))
 player_color = "white"
@@ -87,6 +88,9 @@ class Piece:
         moves = self.valid_moves()
         removed_moves = []
         for move in moves:
+            removed_piece = board.board[move[0]][move[1]]
+            board.board[move[0]][move[1]] = self
+            board.board[self.col][self.row] = 0
             if self.color == "white":
                 danger_moves = board.get_all_moves("black")
                 for dgmove in danger_moves:
@@ -103,9 +107,21 @@ class Piece:
                             removed_moves.append(move)
                     except:
                         pass
+            board.board[move[0]][move[1]] = removed_piece
+            board.board[self.col][self.row] = self
         for remmove in removed_moves:
-            moves.remove(remmove)
+            try:
+                moves.remove(remmove)
+            except ValueError:
+                pass
         return moves
+
+    def display_moves(self):
+        for move in self.new_valid_moves():
+            if player_color == "white":
+                pygame.draw.circle(game_display, (0, 0, 255), (move[0]*100 + 70, move[1]*100 + 70), 10)
+            else:
+                pygame.draw.circle(game_display, (0, 0, 255), ((7-move[0]) * 100 + 70, (7-move[1]) * 100 + 70), 10)
 
 
 class Pawn(Piece):
@@ -745,7 +761,6 @@ class Board:
         self.changed_to_queen = False
         self.castling = None
         self.en_passant = False
-
 
 
 board = Board()
