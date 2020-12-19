@@ -280,6 +280,7 @@ class Rook(Piece):
         self.piece_type = "rook"
         self.value = 5
         self.selected = False
+        self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
 
     def valid_moves(self):
@@ -512,9 +513,11 @@ class King(Piece):
         self.piece_type = "king"
         self.value = 9001
         self.selected = False
+        self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
 
     def valid_moves(self):
+        global computer_color
         row = self.row
         col = self.col
         moves = []
@@ -562,15 +565,14 @@ class King(Piece):
             p = board.board[col+1][row]
             if p == 0 or p.color != self.color:
                 moves.append((col+1, row))
-        # castling king side
-        if self.unmoved: # and self.is not atatcked
+        if self.unmoved:
             try:
                 # king side castling
-                p1 = board.board[col+1][row]
-                p2 = board.board[col+2][row]
-                p3 = board.board[col+3][row]
+                p1 = board.board[col + 1][row]
+                p2 = board.board[col + 2][row]
+                p3 = board.board[col + 3][row]
                 if p1 == 0 and p2 == 0 and p3.unmoved:
-                    moves.append((col+2, row))
+                    moves.append((col + 2, row))
                 # castling queen side
                 p1 = board.board[col - 1][row]
                 p2 = board.board[col - 2][row]
@@ -580,7 +582,6 @@ class King(Piece):
                     moves.append((col - 2, row))
             except:
                 pass
-
 
         return moves
 

@@ -41,6 +41,7 @@ def menu():
                     print("to white")
                     Board.player_color = "white"
                     Board.computer_color = "black"
+                    Oponent.computer.color = "black"
                 if x in range(470, 671) and y in range(300, 401):
                     print("switched")
                     Board.player_color = "black"
