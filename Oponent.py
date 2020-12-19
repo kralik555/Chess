@@ -1,4 +1,5 @@
-import Board, random
+import Board
+import random
 
 
 class Computer:
@@ -11,29 +12,34 @@ class Computer:
         try:
             move = random.choice(Board.board.board[piece[0]][piece[1]].new_valid_moves())
             Board.board.board[piece[0]][piece[1]].move(move[0], move[1])
+            if Board.board.board[move[0]][move[1]].piece_type == "king":
+                Board.board.board[move[0]][move[1]].unmoved = False
         except:
-            if Board.board.check_mate(self.color, Board.player_color):
-                return None
             self.play()
         Board.board.turn = Board.player_color
 
     def play_smart(self):
-        if Board.board.check_mate(self.color, Board.player_color):
-            return None
         pieces = Board.board.get_all_pieces(self.color)
+        max_value = 0
         for piece in pieces:
             if Board.board.board[piece[0]][piece[1]].new_valid_moves():
                 for move in Board.board.board[piece[0]][piece[1]].new_valid_moves():
                     p = Board.board.board[move[0]][move[1]]
                     if p != 0:
-                        if p.value > Board.board.board[piece[0]][piece[1]].value:
+                        Board.board.board[move[0]][move[1]] = 0
+                        if (move[0], move[1]) not in Board.board.get_all_moves(Board.player_color):
                             Board.board.board[piece[0]][piece[1]].move(move[0], move[1])
                             Board.board.turn = Board.player_color
-                            return True
-                    if p not in Board.board.get_all_moves(Board.player_color):
-                        Board.board.board[piece[0]][piece[1]].move(move[0], move[1])
-                        Board.board.turn = Board.player_color
-                        return True
+                            if Board.board.board[move[0]][move[1]].piece_type == "king":
+                                Board.board.board[move[0]][move[1]].unmoved = False
+                            return
+                        Board.board.board[move[0]][move[1]] = p
+                        if p.value >= Board.board.board[piece[0]][piece[1]].value:
+                            Board.board.board[piece[0]][piece[1]].move(move[0], move[1])
+                            Board.board.turn = Board.player_color
+                            if Board.board.board[move[0]][move[1]].piece_type == "king":
+                                Board.board.board[move[0]][move[1]].unmoved = False
+                            return
         self.play()
 
 

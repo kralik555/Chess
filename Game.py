@@ -29,7 +29,7 @@ def play():
                 quit_game = True
                 pygame.quit()
                 quit()
-            elif event.type == pygame.KEYDOWN: # quit upon pressing Q
+            elif event.type == pygame.KEYDOWN:  # quit upon pressing Q
                 if event.key == pygame.K_q:
                     quit_game = True
                     pygame.quit()
@@ -51,6 +51,8 @@ def play():
                             moves = Board.board.selected_piece.new_valid_moves()
                             if (col, row) in moves:
                                 Board.board.selected_piece.move(col, row)
+                                if Board.board.board[col][row].piece_type == "king" or Board.board.board[col][row].piece_type == "rook":
+                                    Board.board.board[col][row].unmoved = False
                                 if Board.board.turn == "white":
                                     Board.board.turn = "black"
                                     if Board.board.check_mate("black", "white"):
@@ -81,7 +83,14 @@ def play():
                     except:
                         pass
         if Board.board.turn == Board.computer_color:
-            Oponent.computer.play()
+            if Board.board.check_mate(Board.computer_color, Board.player_color):
+                Board.message = "White got a check mate"
+                go_to_menu = True
+            elif Board.board.stale_mate(Board.computer_color, Board.player_color):
+                Board.message = "Stalemate"
+                go_to_menu = True
+            else:
+                Oponent.computer.play_smart()
         pygame.display.update()
         clock.tick(60)
 
