@@ -763,5 +763,69 @@ class Board:
         self.castling = None
         self.en_passant = False
 
+    def evaluate_board(self, color):
+        white = 0
+        black = 0
+        if self.stale_mate("black", "white") or self.stale_mate("white", "black"):
+            return 0
+        if self.check_mate("white", "black"):
+            if color == "white":
+                return -9001
+            return 9001
+        if self.check_mate("black", "white"):
+            if color == "black":
+                return -9001
+            return 9001
+        for col in range(8):
+            for row in range(8):
+                if self.board[col][row] != 0:
+                    if self.board[col][row].color == "white":
+                        white += self.board[col][row].value
+                    else:
+                        black += self.board[col][row].value
+        if color == "white":
+            return white - black
+        else:
+            return black - white
+
+    def game_ended(self):
+        if self.check_mate("white", "black") or self.check_mate("black", "white"):
+            return True
+        if self.stale_mate("white", "black") or self.stale_mate("black", "white"):
+            return True
+        return False
+
+    def damn_moves(self, color):
+        all_moves = []
+        pieces = self.get_all_pieces(color)
+        for piece in pieces:
+            moves = self.board[piece[0]][piece[1]].valid_moves()
+            for move in moves:
+                all_moves.append((piece, move))
+        return all_moves
+
+    def minimax(self, depth, alpha, beta, maxcolor, mincolor, max_player):
+        if depth == 0 or self.game_ended():
+            return self.evaluate_board(maxcolor)
+        if max_player:
+            maxEval = -10000
+            for move in self.damn_moves(maxcolor):
+                taken_piece = self.board[move[1][0]][move[1][0]]
+                self.board[move[1][0]][move[1][0]] = self.board[move[0][0]][move[0][1]] = 0
+                eval = self.minimax(depth-1, alpha, beta, maxcolor, mincolor, max_player=False)
+                self.board[move[0][0]][move[0][1]] = self.board[move[1][0]][move[1][1]]
+                self.board[move[1][0]][move[1[1]]] = taken_piece
+                if eval > maxEval:
+                    bestMove = move
+                    if depth == 4:
+                        return bestMove
+                maxEval = max(maxEval, eval)
+                elpha = max(alpha, eval)
+                if alpha <= beta:
+                    break
+                return maxEval
+        else:
+            pass
+
 
 board = Board()
