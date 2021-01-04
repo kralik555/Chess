@@ -131,6 +131,15 @@ class Pawn(Piece):
         self.value = 1
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [5, 10, 10, -20, -20, 10, 10, 5],
+            [5, -5, -10, 0, 0, -10, -5, 5],
+            [0, 0, 0, 20, 20, 0, 0, 0],
+            [5, 5, 10, 25, 25, 10, 5, 5],
+            [10, 10, 20, 30, 30, 20, 10, 10],
+            [50, 50, 50, 50, 50, 50, 50, 50],
+            [0, 0, 0, 0, 0, 0, 0, 0]]
 
     def valid_moves(self):
         row = self.row
@@ -201,6 +210,15 @@ class Bishop(Piece):
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [
+            [-20, -10, -10, -10, -10, -10, -10, -20],
+            [-10, 5, 0, 0, 0, 0, 5, -10],
+            [-10, 10, 10, 10, 10, 10, 10, -10],
+            [-10, 0, 10, 10, 10, 10, 0, -10],
+            [-10, 5, 5, 10, 10, 5, 5, -10],
+            [-10, 0, 5, 10, 10, 5, 0, -10],
+            [-10, 0, 0, 0, 0, 0, 0, -10],
+            [-20, -10, -10, -10, -10, -10, -10, -20]]
 
     def valid_moves(self):
         col = self.col
@@ -282,6 +300,15 @@ class Rook(Piece):
         self.selected = False
         self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [
+            [0, 0, 0, 5, 5, 0, 0, 0],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [5, 10, 10, 10, 10, 10, 10, 5],
+            [0, 0, 0, 0, 0, 0, 0, 0]]
 
     def valid_moves(self):
         row = self.row
@@ -342,6 +369,15 @@ class Knight(Piece):
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [
+            [-50, -40, -30, -30, -30, -30, -40, -50],
+            [-40, -20, 0, 5, 5, 0, -20, -40],
+            [-30, 5, 10, 15, 15, 10, 5, -30],
+            [-30, 0, 15, 20, 20, 15, 0, -30],
+            [-30, 5, 15, 20, 20, 15, 0, -30],
+            [-30, 0, 10, 15, 15, 10, 0, -30],
+            [-40, -20, 0, 0, 0, 0, -20, -40],
+            [-50, -40, -30, -30, -30, -30, -40, -50]]
 
     def valid_moves(self):
         col = self.col
@@ -391,6 +427,15 @@ class Queen(Piece):
         self.value = 10
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [
+            [-20, -10, -10, -5, -5, -10, -10, -20],
+            [-10, 0, 5, 0, 0, 0, 0, -10],
+            [-10, 5, 5, 5, 5, 5, 0, -10],
+            [0, 0, 5, 5, 5, 5, 0, -5],
+            [-5, 0, 5, 5, 5, 5, 0, -5],
+            [-10, 0, 5, 5, 5, 5, 0, -10],
+            [-10, 0, 0, 0, 0, 0, 0, -10],
+            [-20, -10, -10, -5, -5, -10, -10, -20]]
 
     def valid_moves(self):
         col = self.col
@@ -515,6 +560,7 @@ class King(Piece):
         self.selected = False
         self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [[0 for _ in range(8)] for i in range(8)]
 
     def valid_moves(self):
         global computer_color
@@ -587,6 +633,7 @@ class King(Piece):
 
 
 class Board:
+
     def __init__(self):
         self.board = [[0 for _ in range(8)] for i in range(8)]
 
@@ -730,6 +777,7 @@ class Board:
         return False
 
     def stale_mate(self, color1, color2): # color1 has no moves but is not in check -> stale mate
+        # add some shit to make to make the draw after 3 same moves or 50 non-capturing moves
         pieces = self.get_all_pieces(color1)
         moves = []
         for piece in pieces:
@@ -779,10 +827,13 @@ class Board:
         for col in range(8):
             for row in range(8):
                 if self.board[col][row] != 0:
-                    if self.board[col][row].color == "white":
-                        white += self.board[col][row].value
+                    p = self.board[col][row]
+                    if p.color == "white":
+                        white += p.value
+                        white += p.table[col][row] / 100
                     else:
-                        black += self.board[col][row].value
+                        black += p.value
+                        black += p.table[7-col][row] / 100
         if color == "white":
             return white - black
         else:
@@ -799,33 +850,53 @@ class Board:
         all_moves = []
         pieces = self.get_all_pieces(color)
         for piece in pieces:
-            moves = self.board[piece[0]][piece[1]].valid_moves()
+            moves = self.board[piece[0]][piece[1]].new_valid_moves()
             for move in moves:
                 all_moves.append((piece, move))
         return all_moves
+
+    def make_move(self, pos, end):
+        self.board[pos[0]][pos[1]].col, self.board[pos[0]][pos[1]].row = end
+        self.board[end[0]][end[1]] = self.board[pos[0]][pos[1]]
+        self.board[pos[0]][pos[1]] = 0
+
+    def unmake_move(self, pos, end, piece):
+        self.board[end[0]][end[1]].col, self.board[end[0]][end[1]].row = pos
+        self.board[pos[0]][pos[1]] = self.board[end[0]][end[1]]
+        self.board[end[0]][end[1]] = piece
 
     def minimax(self, depth, alpha, beta, maxcolor, mincolor, max_player):
         if depth == 0 or self.game_ended():
             return self.evaluate_board(maxcolor)
         if max_player:
             maxEval = -10000
-            for move in self.damn_moves(maxcolor):
-                taken_piece = self.board[move[1][0]][move[1][0]]
-                self.board[move[1][0]][move[1][0]] = self.board[move[0][0]][move[0][1]] = 0
-                eval = self.minimax(depth-1, alpha, beta, maxcolor, mincolor, max_player=False)
-                self.board[move[0][0]][move[0][1]] = self.board[move[1][0]][move[1][1]]
-                self.board[move[1][0]][move[1[1]]] = taken_piece
+            moves = self.damn_moves(maxcolor)
+            for move in moves:
+                taken_piece = self.board[move[1][0]][move[1][1]]
+                self.make_move(move[0], move[1])
+                eval = self.minimax(depth - 1, alpha, beta, maxcolor, mincolor, max_player=False)
+                self.unmake_move(move[0], move[1], taken_piece)
                 if eval > maxEval:
                     bestMove = move
-                    if depth == 4:
-                        return bestMove
-                maxEval = max(maxEval, eval)
-                elpha = max(alpha, eval)
-                if alpha <= beta:
+                    maxEval = eval
+                alpha = max(alpha, eval)
+                if beta <= alpha:
                     break
-                return maxEval
+            if depth == 2:
+                return bestMove
+            return maxEval
         else:
-            pass
+            minEval = 10000
+            moves = self.damn_moves(mincolor)
+            for move in moves:
+                taken_piece = self.board[move[1][0]][move[1][1]]
+                self.make_move(move[0], move[1])
+                eval = self.minimax(depth - 1, alpha, beta, maxcolor, mincolor, max_player=True)
+                self.unmake_move(move[0], move[1], taken_piece)
+                minEval = min(minEval, eval)
+                if eval <= alpha:
+                    break
+            return minEval
 
 
 board = Board()

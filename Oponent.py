@@ -45,7 +45,11 @@ class Computer:
         self.play()
 
     def play_minimax(self):
-        pass
+        move_piece = Board.board.minimax(2, -10000, 10000, self.color, Board.player_color, max_player=True)
+        Board.board.board[move_piece[0][0]][move_piece[0][1]].move(move_piece[1][0], move_piece[1][1])
+        if Board.board.board[move_piece[1][0]][move_piece[1][1]].piece_type == "king":
+            Board.board.board[move_piece[1][0]][move_piece[1][1]].unmoved = False
+        Board.board.turn = Board.player_color
 
 
 computer = Computer()

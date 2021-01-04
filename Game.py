@@ -83,6 +83,9 @@ def play():
                     except:
                         pass
         if Board.board.turn == Board.computer_color:
+            Board.display_board()
+            Board.board.display_pieces()
+            pygame.display.update()
             if Board.board.check_mate(Board.computer_color, Board.player_color):
                 Board.message = "White got a check mate"
                 go_to_menu = True
@@ -90,7 +93,7 @@ def play():
                 Board.message = "Stalemate"
                 go_to_menu = True
             else:
-                Oponent.computer.play_smart()
+                Oponent.computer.play_minimax()
         pygame.display.update()
         clock.tick(60)
 
