@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 pygame.init()
 lil_font = pygame.font.SysFont("arial", 20, bold=True, italic=False)
 big_font = pygame.font.SysFont("arialblack", 40, bold=False, italic=False)
@@ -8,6 +9,7 @@ game_display = pygame.display.set_mode((840, 840))
 player_color = "white"
 computer_color = "black"
 message = "Fuck you"
+ai_difficulty = 3
 
 
 def display_board():
@@ -131,7 +133,7 @@ class Pawn(Piece):
         self.value = 1
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
-        self.table = [
+        self.table = np.array([
             [0, 0, 0, 0, 0, 0, 0, 0],
             [5, 10, 10, -20, -20, 10, 10, 5],
             [5, -5, -10, 0, 0, -10, -5, 5],
@@ -139,7 +141,7 @@ class Pawn(Piece):
             [5, 5, 10, 25, 25, 10, 5, 5],
             [10, 10, 20, 30, 30, 20, 10, 10],
             [50, 50, 50, 50, 50, 50, 50, 50],
-            [0, 0, 0, 0, 0, 0, 0, 0]]
+            [0, 0, 0, 0, 0, 0, 0, 0]])
 
     def valid_moves(self):
         row = self.row
@@ -210,7 +212,7 @@ class Bishop(Piece):
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
-        self.table = [
+        self.table = np.array([
             [-20, -10, -10, -10, -10, -10, -10, -20],
             [-10, 5, 0, 0, 0, 0, 5, -10],
             [-10, 10, 10, 10, 10, 10, 10, -10],
@@ -218,7 +220,7 @@ class Bishop(Piece):
             [-10, 5, 5, 10, 10, 5, 5, -10],
             [-10, 0, 5, 10, 10, 5, 0, -10],
             [-10, 0, 0, 0, 0, 0, 0, -10],
-            [-20, -10, -10, -10, -10, -10, -10, -20]]
+            [-20, -10, -10, -10, -10, -10, -10, -20]])
 
     def valid_moves(self):
         col = self.col
@@ -300,7 +302,7 @@ class Rook(Piece):
         self.selected = False
         self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
-        self.table = [
+        self.table = np.array([
             [0, 0, 0, 5, 5, 0, 0, 0],
             [-5, 0, 0, 0, 0, 0, 0, -5],
             [-5, 0, 0, 0, 0, 0, 0, -5],
@@ -308,7 +310,7 @@ class Rook(Piece):
             [-5, 0, 0, 0, 0, 0, 0, -5],
             [-5, 0, 0, 0, 0, 0, 0, -5],
             [5, 10, 10, 10, 10, 10, 10, 5],
-            [0, 0, 0, 0, 0, 0, 0, 0]]
+            [0, 0, 0, 0, 0, 0, 0, 0]])
 
     def valid_moves(self):
         row = self.row
@@ -369,7 +371,7 @@ class Knight(Piece):
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
-        self.table = [
+        self.table = np.array([
             [-50, -40, -30, -30, -30, -30, -40, -50],
             [-40, -20, 0, 5, 5, 0, -20, -40],
             [-30, 5, 10, 15, 15, 10, 5, -30],
@@ -377,7 +379,7 @@ class Knight(Piece):
             [-30, 5, 15, 20, 20, 15, 0, -30],
             [-30, 0, 10, 15, 15, 10, 0, -30],
             [-40, -20, 0, 0, 0, 0, -20, -40],
-            [-50, -40, -30, -30, -30, -30, -40, -50]]
+            [-50, -40, -30, -30, -30, -30, -40, -50]])
 
     def valid_moves(self):
         col = self.col
@@ -427,7 +429,7 @@ class Queen(Piece):
         self.value = 10
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
-        self.table = [
+        self.table = np.array([
             [-20, -10, -10, -5, -5, -10, -10, -20],
             [-10, 0, 5, 0, 0, 0, 0, -10],
             [-10, 5, 5, 5, 5, 5, 0, -10],
@@ -435,7 +437,7 @@ class Queen(Piece):
             [-5, 0, 5, 5, 5, 5, 0, -5],
             [-10, 0, 5, 5, 5, 5, 0, -10],
             [-10, 0, 0, 0, 0, 0, 0, -10],
-            [-20, -10, -10, -5, -5, -10, -10, -20]]
+            [-20, -10, -10, -5, -5, -10, -10, -20]])
 
     def valid_moves(self):
         col = self.col

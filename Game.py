@@ -93,7 +93,12 @@ def play():
                 Board.message = "Stalemate"
                 go_to_menu = True
             else:
-                Oponent.computer.play_minimax()
+                if Board.ai_difficulty == 3:
+                    Oponent.computer.play_minimax()
+                elif Board.ai_difficulty == 2:
+                    Oponent.computer.play_smart()
+                else:
+                    Oponent.computer.play()
         pygame.display.update()
         clock.tick(60)
 

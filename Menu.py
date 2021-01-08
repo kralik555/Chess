@@ -1,15 +1,39 @@
 import pygame, Board, time, sys, Oponent
 
 
+class Button:
+    def __init__(self, color, x, y, width, height, text):
+        self.color = color
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+
+    def display(self):
+        pygame.draw.rect(Board.game_display, self.color, (self.x, self.y, self.width, self.height))
+        tw, th = Board.big_font.size(self.text)
+        Board.display_text(self.text, Board.big_font, self.x + self.width/2 - tw/2, self.y + self.height/2 - th/2, (255, 255, 255))
+
+
 def menu():
+    buttons = [Button((0, 0, 0), 320, 100, 200, 100, "Play"),
+               Button((0, 0, 0), 320, 100, 200, 100, "Play"),
+               Button((0, 0, 0), 320, 100, 200, 100, "Play"),
+               Button((0, 0, 0), 320, 100, 200, 100, "Play"),
+               Button((0, 0, 0), 320, 100, 200, 100, "Play"),
+               Button((0, 0, 0), 320, 100, 200, 100, "Play"),
+               Button((0, 0, 0), 320, 100, 200, 100, "Play")]
     while True:
-        Board.game_display.fill((150, 150, 150)) # grey
-        pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 100, 200, 100))  # play
+        button = Button((0, 0, 0), 320, 100, 200, 100, "Play")
+        Board.game_display.fill((150, 150, 150))  # grey
+        button.display()
+        #pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 100, 200, 100))  # play
         pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 600, 200, 100))  # quit
         pygame.draw.rect(Board.game_display, (0, 0, 0), (170, 300, 200, 100))  # white
         pygame.draw.rect(Board.game_display, (0, 0, 0), (470, 300, 200, 100))  # black
         pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 450, 200, 100))  # help
-        Board.display_text("Play", Board.big_font, 375, 120, (255, 255, 255))  # center the text properly
+        #Board.display_text("Play", Board.big_font, 375, 120, (255, 255, 255))  # center the text properly
         Board.display_text("White", Board.big_font, 210, 320, (255, 255, 255))
         Board.display_text("Black", Board.big_font, 510, 320, (255, 255, 255))
         Board.display_text("Help", Board.big_font, 375, 470, (255, 255, 255))
