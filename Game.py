@@ -10,7 +10,7 @@ def play():
     Board.board.renew_board()
     quit_game = False
     pygame.display.set_caption("Chess")
-    Board.game_display.fill((150, 150, 150)) # grey
+    Board.game_display.fill((150, 150, 150))  # grey
     while not quit_game:
         Board.display_board()
         Board.board.display_pieces()

@@ -6,7 +6,8 @@ class Computer:
     def __init__(self):
         self.color = Board.computer_color
 
-    def play(self):
+    def play(self):  # easy level
+        # plays a random move
         pieces = Board.board.get_all_pieces(self.color)
         piece = random.choice(pieces)
         try:
@@ -18,7 +19,8 @@ class Computer:
             self.play()
         Board.board.turn = Board.player_color
 
-    def play_smart(self):
+    def play_smart(self):  # medium level
+        # plays random moves except when it can make a worth trade
         pieces = Board.board.get_all_pieces(self.color)
         max_value = 0
         for piece in pieces:
@@ -44,7 +46,7 @@ class Computer:
                             return
         self.play()
 
-    def play_minimax(self):
+    def play_minimax(self):  # hardest level, plays using the minimax algorithm
         move_piece = Board.board.minimax(2, -10000, 10000, self.color, Board.player_color, max_player=True)
         Board.board.board[move_piece[0][0]][move_piece[0][1]].move(move_piece[1][0], move_piece[1][1])
         if Board.board.board[move_piece[1][0]][move_piece[1][1]].piece_type == "king":
