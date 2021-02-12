@@ -1,2 +1,2 @@
 # Chess
-Testing this shit
+Not much to read here yet
