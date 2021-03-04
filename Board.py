@@ -887,7 +887,7 @@ class Board:
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
-            if depth == 2:
+            if depth == 4:
                 return bestMove
             return maxEval
         else:
