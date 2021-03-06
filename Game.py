@@ -10,7 +10,7 @@ def play():
     Board.board.renew_board()
     quit_game = False
     pygame.display.set_caption("Chess")
-    Board.game_display.fill((150, 150, 150)) # grey
+    Board.game_display.fill((150, 150, 150))  # grey
     while not quit_game:
         Board.display_board()
         Board.board.display_pieces()
@@ -83,6 +83,9 @@ def play():
                     except:
                         pass
         if Board.board.turn == Board.computer_color:
+            Board.display_board()
+            Board.board.display_pieces()
+            pygame.display.update()
             if Board.board.check_mate(Board.computer_color, Board.player_color):
                 Board.message = "White got a check mate"
                 go_to_menu = True
@@ -90,7 +93,12 @@ def play():
                 Board.message = "Stalemate"
                 go_to_menu = True
             else:
-                Oponent.computer.play_smart()
+                if Board.ai_difficulty == 3:
+                    Oponent.computer.play_minimax()
+                elif Board.ai_difficulty == 2:
+                    Oponent.computer.play_smart()
+                else:
+                    Oponent.computer.play()
         pygame.display.update()
         clock.tick(60)
 

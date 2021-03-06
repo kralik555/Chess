@@ -1,22 +1,89 @@
-import pygame, Board, time, sys, Oponent
+import pygame, Board, time, sys, Oponent, random
 
 
-def menu():
-    while True:
-        Board.game_display.fill((150, 150, 150)) # grey
-        pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 100, 200, 100))  # play
-        pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 600, 200, 100))  # quit
-        pygame.draw.rect(Board.game_display, (0, 0, 0), (170, 300, 200, 100))  # white
-        pygame.draw.rect(Board.game_display, (0, 0, 0), (470, 300, 200, 100))  # black
-        pygame.draw.rect(Board.game_display, (0, 0, 0), (320, 450, 200, 100))  # help
-        Board.display_text("Play", Board.big_font, 375, 120, (255, 255, 255))  # center the text properly
-        Board.display_text("White", Board.big_font, 210, 320, (255, 255, 255))
-        Board.display_text("Black", Board.big_font, 510, 320, (255, 255, 255))
-        Board.display_text("Help", Board.big_font, 375, 470, (255, 255, 255))
-        Board.display_text("Quit", Board.big_font, 375, 620, (255, 255, 255))
-        Board.display_text("Choose your color", Board.big_font, 230, 210, (0, 0, 0))
+class Button:
+    def __init__(self, color, x, y, width, height, text, func):
+        self.color = color
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.text = text
+        self.func = func
+
+    def display(self):  # displays the button with text in the middle
+        pygame.draw.rect(Board.game_display, self.color, (self.x, self.y, self.width, self.height))
+        tw, th = Board.big_font.size(self.text)
+        Board.display_text(self.text, Board.big_font, self.x + self.width/2 - tw/2, self.y + self.height/2 - th/2, (255, 255, 255))
+
+
+def end_menu():
+    global display_menu
+    display_menu = False
+
+
+def make_quit():
+    pygame.quit()
+    quit()
+    return True
+
+
+def to_white():  # swaps player color to white
+    Board.player_color = "white"
+    Board.computer_color = "black"
+    Oponent.computer.color = "black"
+
+
+def to_black():  # swaps player color to black
+    Board.player_color = "black"
+    Board.computer_color = "white"
+    Oponent.computer.color = "white"
+
+
+def to_random():  # randomly chooses player color
+    Board.player_color = random.choice(["white", "black"])
+    if Board.player_color == "white":
+        Board.computer_color = "black"
+        Oponent.computer.color = "black"
+    else:
+        Board.computer_color = "white"
+        Oponent.computer.color = "white"
+
+
+# difficulties
+def easy():
+    Board.ai_difficulty = 1
+
+
+def medium():
+    Board.ai_difficulty = 2
+
+
+def hard():
+    Board.ai_difficulty = 3
+
+
+def menu():  # displays menu
+    global display_menu
+    display_menu = True
+    # all the buttons in menu
+    buttons = [Button((0, 0, 0), 320, 50, 200, 100, "Play", end_menu),
+               Button((0, 0, 0), 70, 210, 200, 100, "White", to_white),
+               Button((0, 0, 0), 570, 210, 200, 100, "Random", to_random),
+               Button((0, 0, 0), 320, 210, 200, 100, "Black", to_black),
+               Button((0, 0, 0), 70, 380, 200, 100, "Easy", easy),
+               Button((0, 0, 0), 320, 380, 200, 100, "Medium", medium),
+               Button((0, 0, 0), 570, 380, 200, 100, "Hard", hard),
+               Button((0, 0, 0), 320, 530, 200, 100, "Help", help_screen),
+               Button((0, 0, 0), 320, 680, 200, 100, "Quit", make_quit)]
+    while display_menu:
+        Board.game_display.fill((150, 150, 150))  # grey
+        for button in buttons:
+            button.display()
+        Board.display_text("Choose your color", Board.big_font, 220, 150, (0, 0, 0))
+        Board.display_text("Choose difficulty", Board.big_font, 233, 310, (0, 0, 0))
         pygame.display.update()
-        for event in pygame.event.get():
+        for event in pygame.event.get():  # checks events
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
@@ -26,27 +93,12 @@ def menu():
                     quit()
                     return True
                 else:
-                    return True
+                    pass
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = pygame.mouse.get_pos()
-                if x in range(320, 521):
-                    if y in range(100, 201):
-                        return True
-                    if y in range(450, 551):
-                        help_screen()
-                    if y in range(600, 701):
-                        pygame.quit()
-                        quit()
-                if x in range(170, 371) and y in range(300, 401):
-                    print("to white")
-                    Board.player_color = "white"
-                    Board.computer_color = "black"
-                    Oponent.computer.color = "black"
-                if x in range(470, 671) and y in range(300, 401):
-                    print("switched")
-                    Board.player_color = "black"
-                    Board.computer_color = "white"
-                    Oponent.computer.color = "white"
+                for button in buttons:
+                    if x in range(button.x, button.x + button.width + 1) and y in range(button.y, button.y + button.height + 1):
+                        button.func()
 
 
 def help_screen():

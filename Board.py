@@ -1,4 +1,5 @@
 import pygame
+import numpy as np
 pygame.init()
 lil_font = pygame.font.SysFont("arial", 20, bold=True, italic=False)
 big_font = pygame.font.SysFont("arialblack", 40, bold=False, italic=False)
@@ -8,9 +9,10 @@ game_display = pygame.display.set_mode((840, 840))
 player_color = "white"
 computer_color = "black"
 message = "Fuck you"
+ai_difficulty = 3
 
 
-def display_board():
+def display_board():  # displays chess board and the letters and numbers around it
     for row in range(8):
         for col in range(8):
             x = 100 * col + 20
@@ -33,7 +35,7 @@ def display_board():
                     display_text("12345678"[i], lil_font, 7, i * 100 + 60, (0, 0, 0))
 
 
-def display_text(text, font, x, y, color):
+def display_text(text, font, x, y, color):  # display text when mate or stalemate occurs
     displayed_text = font.render(text, True, color)
     game_display.blit(displayed_text, (x, y))
 
@@ -47,11 +49,11 @@ class Piece:
         self.sprite = None
         self.piece_type = None
 
-    def display_sprite(self, window, x, y):
+    def display_sprite(self, window, x, y):  # display sprites of pieces
         sprite = pygame.image.load(self.sprite)
         window.blit(sprite, (x, y))
 
-    def move(self, col, row):
+    def move(self, col, row):  # moves the piece
         board.en_passant = False
         board.castling = None
         board.changed_to_queen = False
@@ -61,12 +63,12 @@ class Piece:
                 board.board[col][self.row] = 0
                 board.en_passant = True
         elif self.piece_type == "king":
-            if col == self.col + 2:
+            if col == self.col + 2:  # kingside castling
                 board.board[self.col + 1][row] = board.board[self.col + 3][row]
                 board.board[self.col + 3][row].col, board.board[self.col + 3][row].row = self.col + 1, row
                 board.board[self.col + 3][row] = 0
                 board.castling = "kingside"
-            elif col == self.col - 2:
+            elif col == self.col - 2:  # queenside castling
                 board.board[self.col - 1][row] = board.board[self.col - 4][row]
                 board.board[self.col - 4][row].col, board.board[self.col - 4][row].row = self.col - 1, row
                 board.board[self.col - 4][row] = 0
@@ -75,7 +77,7 @@ class Piece:
         self.col, self.row = col, row
         board.board[col][row] = self
         board.board[col1][row1] = 0
-        if self.piece_type == "pawn":
+        if self.piece_type == "pawn":  # promoting pawns into queen
             if self.row == 7 or self.row == 0:
                 board.board[self.col][self.row] = Queen(self.col, self.row, self.color)
                 board.changed_to_queen = True
@@ -84,16 +86,16 @@ class Piece:
 
         board.last_move = (col1, row1, self.col, self.row)
 
-    def new_valid_moves(self):
+    def new_valid_moves(self):  # finds all valid moves
         moves = self.valid_moves()
         removed_moves = []
         for move in moves:
-            removed_piece = board.board[move[0]][move[1]]
+            removed_piece = board.board[move[0]][move[1]]  # makes a move
             board.board[move[0]][move[1]] = self
             board.board[self.col][self.row] = 0
             if self.color == "white":
                 danger_moves = board.get_all_moves("black")
-                for dgmove in danger_moves:
+                for dgmove in danger_moves:  # checks if king is on a tile to which opponent can move
                     try:
                         if board.board[dgmove[0]][dgmove[1]].piece_type == "king":
                             removed_moves.append(move)
@@ -107,7 +109,7 @@ class Piece:
                             removed_moves.append(move)
                     except:
                         pass
-            board.board[move[0]][move[1]] = removed_piece
+            board.board[move[0]][move[1]] = removed_piece  # takes the move back
             board.board[self.col][self.row] = self
         for remmove in removed_moves:
             try:
@@ -116,7 +118,7 @@ class Piece:
                 pass
         return moves
 
-    def display_moves(self):
+    def display_moves(self):  # display possible moves for the chosen piece
         for move in self.new_valid_moves():
             if player_color == "white":
                 pygame.draw.circle(game_display, (0, 0, 255), (move[0]*100 + 70, move[1]*100 + 70), 10)
@@ -124,6 +126,7 @@ class Piece:
                 pygame.draw.circle(game_display, (0, 0, 255), ((7-move[0]) * 100 + 70, (7-move[1]) * 100 + 70), 10)
 
 
+# subclasses of piece
 class Pawn(Piece):
     def __init__(self, col, row, color):
         super().__init__(col, row, color)
@@ -131,8 +134,17 @@ class Pawn(Piece):
         self.value = 1
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = np.array([
+            [0, 0, 0, 0, 0, 0, 0, 0],
+            [5, 10, 10, -20, -20, 10, 10, 5],
+            [5, -5, -10, 0, 0, -10, -5, 5],
+            [0, 0, 0, 20, 20, 0, 0, 0],
+            [5, 5, 10, 25, 25, 10, 5, 5],
+            [10, 10, 20, 30, 30, 20, 10, 10],
+            [50, 50, 50, 50, 50, 50, 50, 50],
+            [0, 0, 0, 0, 0, 0, 0, 0]])  # table of values of positions used to calculate value of board state in minimax
 
-    def valid_moves(self):
+    def valid_moves(self):  # finds all valid moves for the piece
         row = self.row
         col = self.col
         moves = []
@@ -157,7 +169,7 @@ class Pawn(Piece):
                 if p != 0:
                     if p.color != self.color:
                         moves.append((col - 1, row + 1))
-            try:
+            try:  # en passant
                 if board.last_move == (col-1, row+2, col-1, row) and board.board[col - 1][row].piece_type == "pawn":
                     moves.append((col - 1, row + 1))
                 if board.last_move == (col+1, row+2, col+1, row) and board.board[col + 1][row].piece_type == "pawn":
@@ -194,13 +206,22 @@ class Pawn(Piece):
         return moves
 
 
-class Bishop(Piece):
+class Bishop(Piece):  # same functions as pawn, except the moves are different
     def __init__(self, col, row, color):
         super().__init__(col, row, color)
         self.piece_type = "bishop"
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = np.array([
+            [-20, -10, -10, -10, -10, -10, -10, -20],
+            [-10, 5, 0, 0, 0, 0, 5, -10],
+            [-10, 10, 10, 10, 10, 10, 10, -10],
+            [-10, 0, 10, 10, 10, 10, 0, -10],
+            [-10, 5, 5, 10, 10, 5, 5, -10],
+            [-10, 0, 5, 10, 10, 5, 0, -10],
+            [-10, 0, 0, 0, 0, 0, 0, -10],
+            [-20, -10, -10, -10, -10, -10, -10, -20]])
 
     def valid_moves(self):
         col = self.col
@@ -274,7 +295,7 @@ class Bishop(Piece):
         return moves
 
 
-class Rook(Piece):
+class Rook(Piece):  # same functions
     def __init__(self, col, row, color):
         super().__init__(col, row, color)
         self.piece_type = "rook"
@@ -282,6 +303,15 @@ class Rook(Piece):
         self.selected = False
         self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = np.array([
+            [0, 0, 0, 5, 5, 0, 0, 0],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [-5, 0, 0, 0, 0, 0, 0, -5],
+            [5, 10, 10, 10, 10, 10, 10, 5],
+            [0, 0, 0, 0, 0, 0, 0, 0]])
 
     def valid_moves(self):
         row = self.row
@@ -335,13 +365,22 @@ class Rook(Piece):
         return moves
 
 
-class Knight(Piece):
+class Knight(Piece):  # same functions
     def __init__(self, col, row, color):
         super().__init__(col, row, color)
         self.piece_type = "knight"
         self.value = 3
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = np.array([
+            [-50, -40, -30, -30, -30, -30, -40, -50],
+            [-40, -20, 0, 5, 5, 0, -20, -40],
+            [-30, 5, 10, 15, 15, 10, 5, -30],
+            [-30, 0, 15, 20, 20, 15, 0, -30],
+            [-30, 5, 15, 20, 20, 15, 0, -30],
+            [-30, 0, 10, 15, 15, 10, 0, -30],
+            [-40, -20, 0, 0, 0, 0, -20, -40],
+            [-50, -40, -30, -30, -30, -30, -40, -50]])
 
     def valid_moves(self):
         col = self.col
@@ -384,13 +423,22 @@ class Knight(Piece):
         return moves
 
 
-class Queen(Piece):
+class Queen(Piece):  # same functions
     def __init__(self, col, row, color):
         super().__init__(col, row, color)
         self.piece_type = "queen"
         self.value = 10
         self.selected = False
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = np.array([
+            [-20, -10, -10, -5, -5, -10, -10, -20],
+            [-10, 0, 5, 0, 0, 0, 0, -10],
+            [-10, 5, 5, 5, 5, 5, 0, -10],
+            [0, 0, 5, 5, 5, 5, 0, -5],
+            [-5, 0, 5, 5, 5, 5, 0, -5],
+            [-10, 0, 5, 5, 5, 5, 0, -10],
+            [-10, 0, 0, 0, 0, 0, 0, -10],
+            [-20, -10, -10, -5, -5, -10, -10, -20]])
 
     def valid_moves(self):
         col = self.col
@@ -507,7 +555,7 @@ class Queen(Piece):
         return moves
 
 
-class King(Piece):
+class King(Piece):  # same functions
     def __init__(self, col, row, color):
         super().__init__(col, row, color)
         self.piece_type = "king"
@@ -515,6 +563,7 @@ class King(Piece):
         self.selected = False
         self.unmoved = True
         self.sprite = f"Sprites/{self.color}_{self.piece_type}.png"
+        self.table = [[0 for _ in range(8)] for i in range(8)]
 
     def valid_moves(self):
         global computer_color
@@ -587,7 +636,9 @@ class King(Piece):
 
 
 class Board:
+
     def __init__(self):
+        # starting board
         self.board = [[0 for _ in range(8)] for i in range(8)]
 
         self.board[0][0] = Rook(0, 0, "black")
@@ -636,6 +687,7 @@ class Board:
         self.stolen_piece = None
 
     def renew_board(self):
+        # renews the board to the starting state
         self.board = [[0 for x in range(8)] for _ in range(8)]
 
         self.board[0][0] = Rook(0, 0, "black")
@@ -690,7 +742,7 @@ class Board:
                     else:
                         p.display_sprite(game_display, (7 - col) * 100 + 20, (7 - row) * 100 + 20)
 
-    def get_all_pieces(self, color):
+    def get_all_pieces(self, color):  # gets all pieces of a color
         pieces = []
         for i in range(8):
             for j in range(8):
@@ -700,7 +752,7 @@ class Board:
                         pieces.append((i, j))
         return pieces
 
-    def get_all_moves(self, color):
+    def get_all_moves(self, color):  # gets all moves of a color
         all_moves = []
         pieces = self.get_all_pieces(color)
         for piece in pieces:
@@ -730,6 +782,7 @@ class Board:
         return False
 
     def stale_mate(self, color1, color2): # color1 has no moves but is not in check -> stale mate
+        # add some shit to make to make the draw after 3 same moves or 50 non-capturing moves
         pieces = self.get_all_pieces(color1)
         moves = []
         for piece in pieces:
@@ -739,7 +792,7 @@ class Board:
             return True
         return False
 
-    def undo_move(self):
+    def undo_move(self):  # is not working as of right now
         self.board[self.last_move[0]][self.last_move[1]] = self.board[self.last_move[2]][self.last_move[3]]
         self.board[self.last_move[0]][self.last_move[1]].col = self.last_move[0]
         self.board[self.last_move[0]][self.last_move[1]].row = self.last_move[1]
@@ -762,6 +815,93 @@ class Board:
         self.changed_to_queen = False
         self.castling = None
         self.en_passant = False
+
+    def evaluate_board(self, color):  # calculates value of board based on the color
+        white = 0
+        black = 0
+        if self.stale_mate("black", "white") or self.stale_mate("white", "black"):
+            return 0
+        if self.check_mate("white", "black"):
+            if color == "white":
+                return -9001
+            return 9001
+        if self.check_mate("black", "white"):
+            if color == "black":
+                return -9001
+            return 9001
+        for col in range(8):
+            for row in range(8):
+                if self.board[col][row] != 0:
+                    p = self.board[col][row]
+                    if p.color == "white":
+                        white += p.value
+                        white += p.table[col][row] / 100
+                    else:
+                        black += p.value
+                        black += p.table[7-col][row] / 100
+        if color == "white":
+            return white - black
+        else:
+            return black - white
+
+    def game_ended(self):
+        if self.check_mate("white", "black") or self.check_mate("black", "white"):
+            return True
+        if self.stale_mate("white", "black") or self.stale_mate("black", "white"):
+            return True
+        return False
+
+    def damn_moves(self, color):
+        all_moves = []
+        pieces = self.get_all_pieces(color)
+        for piece in pieces:
+            moves = self.board[piece[0]][piece[1]].new_valid_moves()
+            for move in moves:
+                all_moves.append((piece, move))
+        return all_moves
+
+    def make_move(self, pos, end):
+        self.board[pos[0]][pos[1]].col, self.board[pos[0]][pos[1]].row = end
+        self.board[end[0]][end[1]] = self.board[pos[0]][pos[1]]
+        self.board[pos[0]][pos[1]] = 0
+
+    def unmake_move(self, pos, end, piece):
+        self.board[end[0]][end[1]].col, self.board[end[0]][end[1]].row = pos
+        self.board[pos[0]][pos[1]] = self.board[end[0]][end[1]]
+        self.board[end[0]][end[1]] = piece
+
+    def minimax(self, depth, alpha, beta, maxcolor, mincolor, max_player):
+        if depth == 0 or self.game_ended():
+            return self.evaluate_board(maxcolor)
+        if max_player:
+            maxEval = -10000
+            moves = self.damn_moves(maxcolor)
+            for move in moves:
+                taken_piece = self.board[move[1][0]][move[1][1]]
+                self.make_move(move[0], move[1])
+                eval = self.minimax(depth - 1, alpha, beta, maxcolor, mincolor, max_player=False)
+                self.unmake_move(move[0], move[1], taken_piece)
+                if eval > maxEval:
+                    bestMove = move
+                    maxEval = eval
+                alpha = max(alpha, eval)
+                if beta <= alpha:
+                    break
+            if depth == 4:
+                return bestMove
+            return maxEval
+        else:
+            minEval = 10000
+            moves = self.damn_moves(mincolor)
+            for move in moves:
+                taken_piece = self.board[move[1][0]][move[1][1]]
+                self.make_move(move[0], move[1])
+                eval = self.minimax(depth - 1, alpha, beta, maxcolor, mincolor, max_player=True)
+                self.unmake_move(move[0], move[1], taken_piece)
+                minEval = min(minEval, eval)
+                if eval <= alpha:
+                    break
+            return minEval
 
 
 board = Board()
