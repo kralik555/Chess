@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="c62c5dbe-af3e-40e6-82be-a5e2b10d0ba9" name="Default Changelist" comment="">
+    <list default="true" id="c62c5dbe-af3e-40e6-82be-a5e2b10d0ba9" name="Default Changelist" comment="Completely new chess engine with the AI using minimax, already much better than the old one">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Board.py" beforeDir="false" afterPath="$PROJECT_DIR$/Board.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Oponent.py" beforeDir="false" afterPath="$PROJECT_DIR$/Oponent.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/new_chess.py" beforeDir="false" afterPath="$PROJECT_DIR$/new_chess.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,6 +29,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
+    <property name="ignore.virus.scanning.warn.message" value="true" />
     <property name="restartRequiresConfirmation" value="false" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
@@ -137,60 +137,68 @@
       <option name="project" value="LOCAL" />
       <updated>1612992059686</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Completely new chess engine with the AI using minimax, already much better than the old one">
+      <created>1614880189053</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1614880189053</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="minimax" />
     <MESSAGE value="upgraded minimax" />
     <MESSAGE value="new menu" />
-    <option name="LAST_COMMIT_MESSAGE" value="new menu" />
+    <MESSAGE value="Completely new chess engine with the AI using minimax, already much better than the old one" />
+    <option name="LAST_COMMIT_MESSAGE" value="Completely new chess engine with the AI using minimax, already much better than the old one" />
   </component>
   <component name="WindowStateProjectService">
     <state x="552" y="178" key="#Notifications" timestamp="1614416843430">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="552" y="178" key="#Notifications/0.0.1920.1040@0.0.1920.1040" timestamp="1614416843430" />
-    <state x="614" y="114" key="CommitChangelistDialog2" timestamp="1612992058773">
+    <state x="614" y="114" key="CommitChangelistDialog2" timestamp="1615031003466">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state x="614" y="114" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1612992058773" />
+    <state x="614" y="114" key="CommitChangelistDialog2/0.0.1920.1040@0.0.1920.1040" timestamp="1615031003466" />
     <state x="739" y="275" key="FileChooserDialogImpl" timestamp="1609082421731">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
     <state x="739" y="275" key="FileChooserDialogImpl/0.0.1920.1040@0.0.1920.1040" timestamp="1609082421731" />
-    <state width="1899" height="216" key="GridCell.Tab.0.bottom" timestamp="1614879875671">
+    <state width="1899" height="216" key="GridCell.Tab.0.bottom" timestamp="1615031009721">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="216" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1614879875671" />
-    <state width="1899" height="216" key="GridCell.Tab.0.center" timestamp="1614879875671">
+    <state width="1899" height="216" key="GridCell.Tab.0.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1615031009721" />
+    <state width="1899" height="216" key="GridCell.Tab.0.center" timestamp="1615031009720">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="216" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1614879875671" />
-    <state width="1899" height="216" key="GridCell.Tab.0.left" timestamp="1614879875671">
+    <state width="1899" height="216" key="GridCell.Tab.0.center/0.0.1920.1040@0.0.1920.1040" timestamp="1615031009720" />
+    <state width="1899" height="216" key="GridCell.Tab.0.left" timestamp="1615031009720">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="216" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1614879875671" />
-    <state width="1899" height="216" key="GridCell.Tab.0.right" timestamp="1614879875671">
+    <state width="1899" height="216" key="GridCell.Tab.0.left/0.0.1920.1040@0.0.1920.1040" timestamp="1615031009720" />
+    <state width="1899" height="216" key="GridCell.Tab.0.right" timestamp="1615031009720">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="216" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1614879875671" />
-    <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1614785834398">
+    <state width="1899" height="216" key="GridCell.Tab.0.right/0.0.1920.1040@0.0.1920.1040" timestamp="1615031009720" />
+    <state width="1899" height="348" key="GridCell.Tab.1.bottom" timestamp="1614951457504">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1614785834398" />
-    <state width="1899" height="348" key="GridCell.Tab.1.center" timestamp="1614785834398">
+    <state width="1899" height="348" key="GridCell.Tab.1.bottom/0.0.1920.1040@0.0.1920.1040" timestamp="1614951457504" />
+    <state width="1899" height="348" key="GridCell.Tab.1.center" timestamp="1614951457504">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1614785834398" />
-    <state width="1899" height="348" key="GridCell.Tab.1.left" timestamp="1614785834398">
+    <state width="1899" height="348" key="GridCell.Tab.1.center/0.0.1920.1040@0.0.1920.1040" timestamp="1614951457504" />
+    <state width="1899" height="348" key="GridCell.Tab.1.left" timestamp="1614951457504">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1614785834398" />
-    <state width="1899" height="348" key="GridCell.Tab.1.right" timestamp="1614785834398">
+    <state width="1899" height="348" key="GridCell.Tab.1.left/0.0.1920.1040@0.0.1920.1040" timestamp="1614951457504" />
+    <state width="1899" height="348" key="GridCell.Tab.1.right" timestamp="1614951457504">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>
-    <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1614785834398" />
+    <state width="1899" height="348" key="GridCell.Tab.1.right/0.0.1920.1040@0.0.1920.1040" timestamp="1614951457504" />
     <state x="461" y="162" key="SettingsEditor" timestamp="1609082457109">
       <screen x="0" y="0" width="1920" height="1040" />
     </state>

@@ -10,6 +10,9 @@ s.fill((255, 0, 0))
 gr = pygame.Surface((100, 100))
 gr.set_alpha(64)
 gr.fill((0, 255, 0))
+damn = pygame.Surface((200, 100))
+damn.set_alpha(64)
+damn.fill((100, 100, 100))
 board_states = []
 ai_difficulty = 3
 piece_values = {"pawn": 100, "queen": 900, "rook": 500, "bishop": 300, "knight": 300, "king": 100000}
@@ -32,7 +35,7 @@ class Board:
                        "rook": {"white": [], "black": []},
                        "queen": {"white": [], "black": []},
                        "king": {"white": [], "black": []}}
-        self.states = []
+        self.states = []  # keeps states of board so the player can return moves
         self.searching = False
         self.piece_square_tables = {
             "pawn": [0,  0,  0,  0,  0,  0,  0,  0,
@@ -113,7 +116,7 @@ def pawn_moves(tile):
             if board.board[tile+9] != 0 and tile % 8 != 7:
                 if board.board[tile + 9].color != board.board[tile].color:
                     moves.append((tile, tile+9))
-        # add en passant, something with fen
+        # en passant
         if board.en_passant == tile + 7 or board.en_passant == tile + 9:
             moves.append((tile, board.en_passant))
     else:
@@ -133,77 +136,49 @@ def pawn_moves(tile):
     return moves
 
 
-def king_moves(tile):
+def king_moves(tile):  # get rid of duplicit code (normal moves)
     directions = [9, 1, -7, 8, -8, -9, -1, 7]
     colors = ["white", "black"]
     opponent_color = colors[colors.index(board.board[tile].color)-1]
     moves = []
     if tile % 8 == 7:
-        for direction in directions[3:]:
-            if tile + direction in range(64):
-                if board.board[tile+direction] != 0:
-                    if board.board[tile+direction].color == board.board[tile].color:
-                        continue
-                    removed = board.board[tile+direction]
-                    board.board[tile+direction] = 0
-                    rem_king = board.board[tile]
-                    board.board[tile] = 0
-                    if tile+direction in attacked_squares(removed.color):
-                        board.board[tile + direction] = removed
-                        board.board[tile] = rem_king
-                        continue
-                    board.board[tile + direction] = removed
-                    board.board[tile] = rem_king
-                moves.append((tile, tile+direction))
+        directions = directions[3:]
     elif tile % 8 == 0:
-        for direction in directions[:-3]:
-            if tile + direction in range(64):
-                if board.board[tile + direction] != 0:
-                    if board.board[tile + direction].color == board.board[tile].color:
-                        continue
-                    removed = board.board[tile + direction]
-                    rem_king = board.board[tile]
-                    board.board[tile + direction] = 0
-                    board.board[tile] = 0
-                    if tile + direction in attacked_squares(removed.color):
-                        board.board[tile + direction] = removed
-                        board.board[tile] = rem_king
-                        continue
+        directions = directions[:-3]
+    for direction in directions:
+        if tile + direction in range(64):
+            if board.board[tile+direction] != 0:
+                if board.board[tile+direction].color == board.board[tile].color:
+                    continue
+                removed = board.board[tile+direction]
+                board.board[tile+direction] = 0
+                rem_king = board.board[tile]
+                board.board[tile] = 0
+                if tile+direction in attacked_squares(removed.color):
                     board.board[tile + direction] = removed
                     board.board[tile] = rem_king
-                moves.append((tile, tile + direction))
-    else:
-        for direction in directions:
-            if tile + direction in range(64):
-                if board.board[tile + direction] != 0:
-                    if board.board[tile + direction].color == board.board[tile].color:
-                        continue
-                    removed = board.board[tile + direction]
-                    rem_king = board.board[tile]
-                    board.board[tile] = 0
-                    board.board[tile + direction] = 0
-                    if tile + direction in attacked_squares(removed.color):
-                        board.board[tile + direction] = removed
-                        board.board[tile] = rem_king
-                        continue
-                    board.board[tile + direction] = removed
-                    board.board[tile] = rem_king
-                moves.append((tile, tile + direction))
-    try:
-        if board.board[tile].color == "white" and tile == 4:
-            if "K" in get_fen().split(" ")[2] and board.board[tile+1] == 0 and board.board[tile+2] == 0 \
-                    and tile not in attacked_squares(opponent_color) and tile+1 not in attacked_squares(opponent_color):
-                moves.append((tile, tile+2))
-            if "Q" in get_fen().split(" ")[2] and board.board[tile-1] == 0 and board.board[tile-2] == 0 and board.board[tile-3] == 0:
-                moves.append((tile, tile-2))
-        if board.board[tile].color == "black" and tile == 60:
-            if "k" in get_fen().split(" ")[2] and board.board[tile+1] == 0 and board.board[tile+2] == 0:
-                moves.append((tile, tile+2))
-            if "q" in get_fen().split(" ")[2] and board.board[tile-1] == 0 and board.board[tile-2] == 0 and board.board[tile-3] == 0:
-                moves.append((tile, tile-2))
-    except:
-        pass
+                    continue
+                board.board[tile + direction] = removed
+                board.board[tile] = rem_king
+            moves.append((tile, tile+direction))
+    if board.board[tile].color == "white" and tile == 4 and tile not in attacked_squares(opponent_color):
+        if "K" in get_fen().split(" ")[2] and board.board[tile+1] == 0 and board.board[tile+2] == 0 \
+                and tile+1 not in attacked_squares(opponent_color) and tile+2 not in attacked_squares(opponent_color):
+            moves.append((tile, tile+2))
+        if "Q" in get_fen().split(" ")[2] and board.board[tile-1] == 0 and board.board[tile-2] == 0 \
+                and board.board[tile-3] == 0 and tile-1 not in attacked_squares(opponent_color) \
+                and tile-2 not in attacked_squares(opponent_color):
+            moves.append((tile, tile-2))
+    if board.board[tile].color == "black" and tile == 60 and tile not in attacked_squares(opponent_color):
+        if "k" in get_fen().split(" ")[2] and board.board[tile + 1] == 0 and board.board[tile + 2] == 0 \
+                and tile+1 not in attacked_squares(opponent_color) and tile + 2 not in attacked_squares(opponent_color):
+            moves.append((tile, tile+2))
+        if "q" in get_fen().split(" ")[2] and board.board[tile - 1] == 0 and board.board[tile - 2] == 0 \
+                and board.board[tile - 3] == 0 and tile - 1 not in attacked_squares(opponent_color) \
+                and tile - 2 not in attacked_squares(opponent_color):
+            moves.append((tile, tile-2))
     i = 0
+    # looks for captures but excludes them if the tile would be attacked after the capture
     removed = board.board[tile]
     board.board[tile] = 0
     while i < len(moves):
@@ -527,21 +502,10 @@ def attacked_squares(color):
         if board.pieces[i][color]:
             for tile in board.pieces[i][color]:
                 attacked_tiles.extend(moves(tile))
-    pawn_attacks = []
-    for i in board.pieces["pawn"][color]:
-        if color == "white":
-            if i % 8 != 0:
-                pawn_attacks.append(i + 7)
-            if i % 8 != 7:
-                pawn_attacks.append(i + 9)
-        else:
-            if i % 8 != 0:
-                pawn_attacks.append(i - 9)
-            if i % 8 != 7:
-                pawn_attacks.append(i - 7)
+    p_attacks = pawn_attacks(color)
     for i in attacked_tiles:
         tiles.append(i[1])
-    tiles.extend(pawn_attacks)
+    tiles.extend(p_attacks)
     tiles.extend(simple_king_moves(color))
     return tiles
 
@@ -680,22 +644,26 @@ def pinned_pieces(color):
             if move[1] == king_pos:
                 checks += 1
                 checking_squares.append(i)
+    # returns pieces that are pinned; number of checks; tiles where the pinning pieces are; tiles where are pieces that
+    # are attacking the king
     return pinned_tiles, checks, pinning_tiles, checking_squares
 
 
-def check_mate():
+def check_mate():  # display "check mate" and returns to menu after 3 seconds
     if not board.searching:
-        display_text("check mate", big_font, 200, 380, (0, 255, 0))
+        tw, th = big_font.size("check mate")
+        display_text("check mate", big_font, 400 - tw/2, 400 - th/2, (0, 255, 0))
         pygame.display.update()
-        time.sleep(2)
+        time.sleep(3)
         menu()
 
 
-def stale_mate():
+def stale_mate():  # displays "stale mate" and returns to menu
     if not board.searching:
-        display_text("stale mate", big_font, 200, 380, (0, 0, 255))
+        tw, th = big_font.size("stale mate")
+        display_text("stale mate", big_font, 400 - tw/2, 400 - th/2, (0, 0, 255))
         pygame.display.update()
-        time.sleep(2)
+        time.sleep(3)
         menu()
 
 
@@ -743,7 +711,6 @@ def eval_board():  # returns eval for the color that is supposed to move now
              -30, 0,  0,  0,  0,  0, 0, -30,
              -50, -30, -30, -30, -30, -30, -30, -50]
         end_eval = endgame_eval()
-        print("We're in the endgame now")
     for k in board.pieces.keys():
         white_eval += piece_values[k] * len(board.pieces[k]["white"])
         for i in board.pieces[k]["white"]:
@@ -765,7 +732,8 @@ def move_ordering(moves):
     for i in range(len(moves)):
         score = 0
         if board.board[moves[i][1]] != 0:
-            score = multiplier * piece_values[board.board[moves[i][1]].piece_type] - piece_values[board.board[moves[i][0]].piece_type]
+            score = multiplier * piece_values[board.board[moves[i][1]].piece_type] \
+                    - piece_values[board.board[moves[i][0]].piece_type]
         if board.board[moves[i][0]].piece_type == "pawn":
             if moves[i][1] in range(8) or moves[i][1] in range(56, 64):
                 score += 900
@@ -784,7 +752,13 @@ def move_ordering(moves):
 
 
 def capture_search(alpha, beta):
+    board.searching = True
     eval = eval_board()
+    if not all_moves(board.to_move):
+        if pinned_pieces(board.to_move)[1]:
+            return -math.inf
+        else:
+            return 0
     if eval >= beta:
         return beta
     if eval > alpha:
@@ -809,10 +783,12 @@ def minimax(depth, alpha, beta):  # sorta kinda works not really XD
     best_move = None
     if not moves:
         if pinned_pieces(board.to_move)[1]:
-            board.searching = False
+            if depth == 2:
+                board.searching = False
             return -math.inf
         else:
-            board.searching = False
+            if depth == 2:
+                board.searching = False
             return 0
     if depth == 0:
         if ai_difficulty == 3:
@@ -849,7 +825,6 @@ def ai_play():
                 check_mate()
             else:
                 stale_mate()
-        print(time.time() - time0)
         move(mov[0], mov[1])
     else:  # uses capture move search after depth 0 in minimax
         time0 = time.time()
@@ -859,7 +834,6 @@ def ai_play():
                 check_mate()
             else:
                 stale_mate()
-        print(time.time() - time0)
         move(mov[0], mov[1])
 
 
@@ -890,7 +864,7 @@ def play():
                         apply_fen(board.states[-2])
                         board.states.pop()
                         board.states.pop()
-                    except IndexError:
+                    except IndexError:  # if player tried to return a move at the beginning of the game
                         pass
                 if event.key == pygame.K_m:
                     menu()
@@ -956,14 +930,24 @@ def display_text(text, font, x, y, color):  # display text when mate or stalemat
 
 
 def help_screen():
-    game_display.fill((100, 100, 100))
-    # just display some advice on how to work with the app
-    display_text("This is a help for the absolutely dumb ones.", help_font, 80, 50, (0, 0, 0))
-    display_text("To quit this app press Q or click QUIT in menu.", help_font, 50, 100, (0, 0, 0))
-    display_text("In the menu, press any key (except for Q) ", help_font, 0, 150, (0, 0, 0))
-    display_text("to go to the game or just click PLAY.", help_font, 60, 200, (0, 0, 0))
-    display_text("To quit this app press Q or click QUIT in menu.", help_font, 60, 250, (0, 0, 0))
+    # displayed text in help
+    texts = ["To quit the app press Q or click QUIT in menu.",
+             "To return to the menu, press any other key.",
+             "In the menu, choose difficulty and your color",
+             "by clicking on the buttons.",
+             "To move a piece in the game, click on it and",
+             "then click on the tile you want it to move to.",
+             "To return a move, press Z.",
+             "If Z doesn't work, press Y.",
+             "The hard difficulty opponent may take",
+             "a bit more time to move sometimes, ",
+             "so just wait for the response."]
     while True:
+        game_display.fill((150, 150, 150))
+        # displays some advice on how to work with the app
+        for i, text in enumerate(texts):
+            tw, th = help_font.size(text)
+            display_text(text, help_font, 400 - tw / 2, 50 * (i + 1) - 10 - th / 2, (0, 0, 0))
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -972,8 +956,8 @@ def help_screen():
                 if event.key == pygame.K_q:
                     pygame.quit()
                     quit()
-            else:
-                return True
+                else:
+                    return None
         pygame.display.update()
 
 
@@ -1025,6 +1009,7 @@ def hard():
 
 def menu():  # displays menu
     # all the buttons in menu
+    chosen_x, chosen_y = None, None
     buttons = [Button((0, 0, 0), 320, 50, 200, 100, "Play", play),
                Button((0, 0, 0), 70, 210, 200, 100, "White", to_white),
                Button((0, 0, 0), 570, 210, 200, 100, "Random", to_random),
@@ -1038,6 +1023,8 @@ def menu():  # displays menu
         game_display.fill((150, 150, 150))  # grey
         for button in buttons:
             button.display()
+        if chosen_x:
+            game_display.blit(damn, (chosen_x, chosen_y))
         display_text("Choose your color", big_font, 220, 150, (0, 0, 0))
         display_text("Choose difficulty", big_font, 233, 310, (0, 0, 0))
         pygame.display.update()
@@ -1056,7 +1043,10 @@ def menu():  # displays menu
                 x, y = pygame.mouse.get_pos()
                 for button in buttons:
                     if x in range(button.x, button.x + button.width + 1) and y in range(button.y, button.y + button.height + 1):
+                        chosen_x, chosen_y = button.x, button.y
                         button.func()
+            elif event.type == pygame.MOUSEBUTTONUP:
+                chosen_x, chosen_y = None, None
 
 
 board = Board()
